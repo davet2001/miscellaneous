@@ -17,7 +17,9 @@
 # - it's not very reliable (mqtt service that goes offline).
 #
 # Some of the newer (purple button) sockets allow connection to a MiHome
-# hub and let you monitor on/off status and power consumption.
+# hub and let you monitor on/off status and power consumption but I didn't
+# find much support for those with the ener314-RT scripts and didn't need
+# the functionality that much.
 #
 # Solution:
 # I reverse engineered the energenie protocol using the excellent Universal
@@ -36,10 +38,10 @@
 # You can decode this using URH.
 # Any socket can be reprogrammed to respond to a specific house code by 
 # holding the button.
-# There are 4 normal addresses that you can write send to (buttons 1-4 on the
+# There are 4 normal channels that you can write send to (buttons 1-4 on the
 # remote).
-# Address 5 is a special one that means 'all on' or 'all off'
-# Addresses 6-8 are usable and respond to 'all on/off' but there are no
+# Channel 5 is a special one that means 'all on' or 'all off'
+# Channels 6-8 are usable and respond to 'all on/off' but there are no
 # remote buttons so they can only be used programmatically.
 #
 # Code is 24 bits + 1 stop bit.
@@ -52,7 +54,8 @@
 # bit 23 (1 bit):        New state (1=on, 0=0ff)
 # bit 24 (1 bit):        Stop bit (always 0)
 #
-# 
+
+# The script:
 housecode=0xfd160
 channel=3
 newstate=1
