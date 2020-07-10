@@ -23,7 +23,7 @@
 #
 # Solution:
 # I reverse engineered the energenie protocol using the excellent Universal
-# Radio Hacker (URH) along with a <£5 RTL-SDR DVB receiver, and figured a 
+# Radio Hacker (URH) along with a <£5 RTL-SDR DVB receiver, and figured out a 
 # bash oneliner that can command the sockets without needing any extra 
 # software/configs other than rpi-rf_send, connected to the cheapest (<£2) 
 # 433MHz RF transmitter available from aliexpress.
@@ -38,7 +38,7 @@
 # You can decode this using URH.
 # Any socket can be reprogrammed to respond to a specific house code by 
 # holding the button.
-# There are 4 normal channels that you can write send to (buttons 1-4 on the
+# There are 4 normal channels that you can write to (buttons 1-4 on the
 # remote).
 # Channel 5 is a special one that means 'all on' or 'all off'
 # Channels 6-8 are usable and respond to 'all on/off' but there are no
