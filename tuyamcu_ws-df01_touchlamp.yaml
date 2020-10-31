@@ -1,0 +1,161 @@
+# ESPHome config for TuyaMCU based dimmer WF-DS01
+# Dave T 2020-10-31
+# Includes:
+#   - full control of dimmer through home assistant
+#   - green LED visible under '+' touch input for status/error indication
+#   - secondary touch input for use with TTP233 style touch sensor
+#     (e.g. connected to metalwork of table lamp), with 4 level instant
+#     dimmer levels.
+#   - auto full-off of lamp if brightness set to very low value.
+#
+esphome:
+  name: lampd2
+  platform: ESP8266
+  board: esp01_1m
+
+wifi:
+  domain: .local
+  ssid: "redacted"
+  password: "redacted"
+
+# Enable logging
+logger:
+  baud_rate: 0
+  level: DEBUG
+  logs:
+    sensor: ERROR
+    duty_cycle: ERROR
+    binary_sensor: ERROR
+    light: ERROR
+
+# Enable Home Assistant API
+api:
+
+ota:
+
+web_server:
+
+tuya:
+
+time:
+  - platform: homeassistant
+
+substitutions:
+  lamp_id: "Lamp D2"
+
+# Uart definition to talk to MCU dimmer
+uart:
+  tx_pin: GPIO1
+  rx_pin: GPIO3
+  stop_bits: 1
+  baud_rate: 9600
+
+sensor:
+  # wifi Signal strength
+  - platform: wifi_signal
+    name: "${lamp_id} WiFi Signal Sensor"
+    update_interval: 60s
+  # Internal measure of brightness to allow switch to full off when v low.
+  - platform: template
+    name: "Brightness sensor"
+    id: "brightness_internal"
+    update_interval: 5s
+    internal: True
+    lambda: |-
+      float brightness;
+      id(light_main).current_values_as_brightness( &brightness );
+      return brightness;
+    on_value_range:
+      below: 0.1
+      then:
+        - light.turn_off: light_main
+
+# Status indicator using green LED (slow on warning, fast on error)
+status_led:
+  pin: GPIO14
+
+# Uncomment if you wnat full control of the built in green LED
+# output:
+#   - platform: esp8266_pwm
+#     pin: GPIO14
+#     frequency: 800 Hz
+#     id: dummy_pwm
+
+# Primary Light object exposed to HA
+light:
+  - platform: tuya
+    id: light_main
+    name: "${lamp_id} Light"
+    dimmer_datapoint: 2
+    switch_datapoint: 1
+  # Uncomment for full brightness control of green LED
+  # - platform: monochromatic
+  #   default_transition_length: 500ms
+  #   name: "${lamp_id} Green LED"
+  #   output: dummy_pwm
+  #   id: light_green
+  #   internal: True
+    # effects:
+    #   # Experimental throbbing effect for green LED
+    #   - lambda:
+    #       name: Throb
+    #       update_interval: 1s
+    #       lambda: |-
+    #         static int state = 0;
+    #         auto call = id(light_green).turn_on();
+    #         // Transtion of 1000ms = 1s
+    #         call.set_transition_length(1000);
+    #         if (state == 0) {
+    #           call.set_brightness(1.0);
+    #         } else if (state == 1) {
+    #           call.set_brightness(0.0);
+    #         }
+    #         call.perform();
+    #         state += 1;
+    #         if (state >= 2)
+    #           state = 0;
+
+#  touch input switch e.g. TTP223 to set specific brightness levels.
+binary_sensor:
+  - platform: gpio
+    pin: GPIO13
+    id: touch_switch
+    name: "${lamp_id} Touch Switch"
+    internal: True
+    on_press:
+      then:
+        - lambda: |-
+            const float L0 = 0.02f;
+            const float L1 = 0.2f;
+            const float L2 = 0.5f;
+            const float L3 = 1.0f;
+            float brightness;
+            auto call = id(light_main).turn_on();
+            id(light_main).current_values_as_brightness( &brightness );
+            if( brightness < (L1-0.02))
+            {
+              ESP_LOGD("test", "L1");
+              brightness = L1;
+            }
+            else if(brightness < L2-0.02)
+            {
+              ESP_LOGD("test", "L2");
+              brightness = L2;
+            }
+            else if (brightness < L3-0.02)
+            {
+              ESP_LOGD("test", "L3");
+              brightness = L3;
+            }
+            else
+            {
+              ESP_LOGD("test", "L0");
+              brightness = L0;
+            }
+            call.set_brightness( brightness );
+            call.perform(); 
+
+# A HA accessible reboot switch if wanted.
+# switch:
+#   - platform: restart
+#     name: "${lamp_id} Restart"
