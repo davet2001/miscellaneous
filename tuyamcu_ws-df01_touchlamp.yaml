@@ -3,8 +3,8 @@
 # Includes:
 #   - full control of dimmer through home assistant
 #   - green LED visible under '+' touch input for status/error indication
-#   - secondary touch input for use with TTP233 style touch sensor
-#     (e.g. connected to metalwork of table lamp), with 4 level instant
+#   - secondary touch input for use with TTP223 style touch sensor
+#     (e.g. connected to metalwork of table lamp), with 4 instant
 #     dimmer levels.
 #   - auto full-off of lamp if brightness set to very low value.
 #
