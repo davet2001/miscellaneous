@@ -477,6 +477,26 @@ subs = [
         "SWITCH",
         "homeassistant.components.switch",
     ),
+
+    # config source enums
+    (
+        "SOURCE_DISCOVERED",
+        "ConfigSource",
+        "DISCOVERED",
+        "homeassistant.core",
+    ),
+    (
+        "SOURCE_STORAGE",
+        "ConfigSource",
+        "STORAGE",
+        "homeassistant.core",
+    ),
+    (
+        "SOURCE_YAML",
+        "ConfigSource",
+        "YAML",
+        "homeassistant.core",
+    ),
 ]
 # List of items that match more than one - need to manually do them!
 manualsubs = []
@@ -493,17 +513,20 @@ assert len(sys.argv) == 2, "You must specify exactly one command line argument"
 filesearch = sys.argv[1]
 print(f" Refactoring {filesearch}")
 
-files = glob.glob(f"homeassistant/components/{filesearch}/*.py") + glob.glob(f"tests/components/{filesearch}/*.py")
+files = glob.glob(f"tests/components/{filesearch}/*.py") + glob.glob(f"homeassistant/components/{filesearch}/*.py")
 
 for name in files:
     if name in [
         "homeassistant/components/sensor/__init__.py",
         "homeassistant/components/binary_sensor/__init__.py",
+        "homeassistant/components/binary_sensor/device_condition.py",
+        "homeassistant/components/binary_sensor/device_trigger.py",
         "homeassistant/components/button/__init__.py",
         "homeassistant/components/cover/__init__.py",
         "homeassistant/components/humidifier/__init__.py",
         "homeassistant/components/media_player/__init__.py",
         "homeassistant/components/switch/__init__.py",
+        "tests/components/nest/test_sensor_sdm.py",
     ]:
         print(f" Skipping {name}.")
         continue
@@ -552,6 +575,21 @@ for name in files:
                 rf"{class_}.{enum}",
                 content,
             )
+            # Swap any '==' for 'is'
+            # Disabled because state attributes are strings:
+            # https://github.com/home-assistant/core/pull/61989#discussion_r770614380
+            # content = re.sub(
+            #     rf"==(\s*){class_}\.{enum}\b",
+            #     rf"is\1{class_}.{enum}",
+            #     content,
+            # )
+            # Swap '==' for 'is' for sensorstateclass
+            if class_ == "SensorStateClass":
+                content = re.sub(
+                    rf"==(\s*){class_}\.{enum}\b",
+                    rf"is\1{class_}.{enum}",
+                    content,
+                )
             modified = True
 
     if modified:

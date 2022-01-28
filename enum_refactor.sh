@@ -1,12 +1,13 @@
 #!/bin/bash
 
 
-for filename in homeassistant/components/a*; do
+for filename in homeassistant/components/$1; do
     filename=$(basename -- "$filename")
     echo "Processing $filename..."
     branchname="refactor_enum_${filename}_tests"
+    echo " Using branch name $branchname..."
 
-    if [ `git branch --list $branchname` ]
+    if [ `git --no-pager branch --list $branchname` ]
     then
         echo "Branch name $branchname already exists, skipping."
         continue
@@ -15,7 +16,7 @@ for filename in homeassistant/components/a*; do
     python3 script/enum_refactor.py $filename || { echo 'Command failed' ; exit 1; }
     if [ ! -d "tests/components/$filename" ]
     then
-        echo "No tests for $filename, skipping."
+        echo " No tests for $filename, skipping."
         continue
     fi
     COUNT=$(git --no-pager diff --stat tests/components/${filename}/ | grep "changed" | sed 's@^[^0-9]*\([0-9]\+\).*@\1@')
@@ -43,10 +44,10 @@ for filename in homeassistant/components/a*; do
     else
         echo " CHANGES for main component $filename"
         git add homeassistant/components/${filename}/* || { echo 'Command failed' ; exit 1; }
-        git commit -m"Use DeviceClass Enums in ${filename}" || { echo 'Command failed' ; exit 1; }
+        git commit -m"Use new enums in ${filename}" || { echo 'Command failed' ; exit 1; }
     fi
     git add tests/components/${filename}/* || { echo 'Command failed' ; exit 1; }
-    git commit -m"Use DeviceClass Enums in ${filename} tests"
+    git commit -m"Use new enums in ${filename} tests"
 
     git push --set-upstream origin $branchname || { echo 'Command failed' ; exit 1; }
     git checkout dev || { echo 'Command failed' ; exit 1; }
