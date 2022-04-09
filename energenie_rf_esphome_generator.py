@@ -1,5 +1,5 @@
 """
-Python application to generate esphome energine rf transmitter configs.
+Python application to generate esphome energenie RF transmitter configs.
 Dave T 09/04/2022
 
 Home Assistant no longer supports my 433 gpio rf transmitter wired directly
@@ -23,13 +23,15 @@ the original handheld remote.
 """ 
 
 def reverse_string(input:str) -> str:
+    """Return a string with the characters reversed."""
     return input[::-1]
 
 def inverse_binary_string(input:str) -> str:
+    """Invert all 0s to 1s and 1s to 0s in a binary string."""
     return ''.join(['1' if i == '0' else '0' for i in input])
 
 def gen_binary_code(housecode:int, button:int, newstate:bool) -> str:
-
+    """Generate an energenie binary RF code."""
     housecode_bin = f"{housecode:>020b}"
     button_bin = reverse_string(inverse_binary_string(f"{(button - 1):>03b}"))
     newstate_bin = '1' if newstate else '0'
