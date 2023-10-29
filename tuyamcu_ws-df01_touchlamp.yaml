@@ -66,7 +66,7 @@ sensor:
       id(light_main).current_values_as_brightness( &brightness );
       return brightness;
     on_value_range:
-      below: 0.1
+      below: 0.05
       then:
         - light.turn_off: light_main
 
