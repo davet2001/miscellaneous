@@ -1,10 +1,10 @@
 # ESPHome config for TuyaMCU based dimmer WF-DS01
-# Dave T 2020-10-31
+# Dave T 2020-10-31, last update 2023-10-29
 # Includes:
 #   - full control of dimmer through home assistant
 #   - green LED visible under '+' touch input for status/error indication
-#   - secondary touch input for use with TTP223 style touch sensor
-#     (e.g. connected to metalwork of table lamp), with 4 instant
+#   - secondary touch input for use with TTP233 style touch sensor
+#     (e.g. connected to metalwork of table lamp), with 4 level instant
 #     dimmer levels.
 #   - auto full-off of lamp if brightness set to very low value.
 #
@@ -74,7 +74,7 @@ sensor:
 status_led:
   pin: GPIO14
 
-# Uncomment if you wnat full control of the built in green LED
+# Uncomment if you want full control of the built in green LED
 # output:
 #   - platform: esp8266_pwm
 #     pin: GPIO14
@@ -121,15 +121,44 @@ binary_sensor:
     pin: GPIO13
     id: touch_switch
     name: "${lamp_id} Touch Switch"
-    internal: True
+    #internal: True
     on_press:
       then:
-        - lambda: |-
-            const float L0 = 0.02f;
-            const float L1 = 0.2f;
-            const float L2 = 0.5f;
-            const float L3 = 1.0f;
-            float brightness;
+        - script.execute: on_touch
+
+button:
+  - platform: template
+    id: remote_switch
+    name: "Remote switch"
+    on_press:
+      then:
+        - script.execute: on_touch
+switch:
+  - platform: template
+    id: touch_active
+    name: "Touch active"
+    optimistic: true
+
+
+script:
+  # Countdown and deactivate touch after n seconds to ignore stray EMC pulses.
+  - id: countdown_touch_active
+    mode: restart
+    then:
+        - switch.turn_on: touch_active
+        - delay: 30s
+        - switch.turn_off: touch_active
+  - id: on_touch
+    mode: single
+    then:
+      - lambda: |-
+          const float L0 = 0.02f;
+          const float L1 = 0.2f;
+          const float L2 = 0.5f;
+          const float L3 = 1.0f;
+          float brightness;
+          if (id(touch_active).state)
+          {
             auto call = id(light_main).turn_on();
             id(light_main).current_values_as_brightness( &brightness );
             if( brightness < (L1-0.02))
@@ -154,6 +183,8 @@ binary_sensor:
             }
             call.set_brightness( brightness );
             call.perform(); 
+          }
+      - script.execute: countdown_touch_active
 
 # A HA accessible reboot switch if wanted.
 # switch:
