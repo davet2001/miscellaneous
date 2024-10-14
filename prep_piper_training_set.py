@@ -17,6 +17,10 @@
 # https://github.com/davet2001/piper/blob/master/notebooks/piper_multilingual_training_notebook.ipynb
 # The python notebook can be run on google colab.
 # Training for >2hours is recommended, and at least 5mins of audio seems to be necessary.
+#
+# Tips:
+# Check the transcripts before submitting, to remove any errors. 
+# Also remove any files that don't contain pure speech.
 
 
 import glob
